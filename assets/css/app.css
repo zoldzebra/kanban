@@ -1,0 +1,25 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+/* This file is for your main application CSS */
+
+.board {
+  display: flex;
+  justify-content: space-between;
+  height: 100vh;
+  padding: 20px;
+}
+
+.column {
+  flex: 1;
+  margin: 0 10px;
+  background-color: #f4f5f7;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.column h2 {
+  text-align: center;
+  color: #5e6c84;
+}
