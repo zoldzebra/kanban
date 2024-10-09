@@ -26,4 +26,19 @@ defmodule KanbanWeb.BoardLiveTest do
     assert has_element?(page_live, "#in-progress-column", "Implement backend")
     assert has_element?(page_live, "#done-column", "Write tests")
   end
+
+  test "can add a new task", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/")
+
+    view
+    |> element("form")
+    |> render_submit(%{title: "New Task", content: "This is a new task"})
+
+    updated_html = render(view)
+
+    assert updated_html =~ "New Task"
+
+    assert has_element?(view, "#todo-column", "New Task")
+    assert has_element?(view, "#todo-column", "This is a new task")
+  end
 end
