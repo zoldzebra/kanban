@@ -3,9 +3,22 @@ defmodule KanbanWeb.BoardLive do
 
   alias KanbanWeb.TaskFormComponent
 
+  @column_id_status_map %{
+    "todo-column" => "todo",
+    "in-progress-column" => "in_progress",
+    "done-column" => "done"
+  }
+
   def mount(_params, _session, socket) do
     tasks = get_initial_tasks()
-    {:ok, assign(socket, tasks: tasks)}
+    {todo_tasks, in_progress_tasks, done_tasks} = sort_tasks_by_status(tasks)
+
+    {:ok,
+     assign(socket,
+       todo_tasks: todo_tasks,
+       in_progress_tasks: in_progress_tasks,
+       done_tasks: done_tasks
+     )}
   end
 
   def handle_info({:new_task, task_params}, socket) do
@@ -21,11 +34,75 @@ defmodule KanbanWeb.BoardLive do
   end
 
   def handle_event("reposition", params, socket) do
-    # Put your logic here to deal with the changes to the list order
-    # and persist the data
-    IO.inspect(params)
-    IO.inspect(socket.assigns.tasks)
-    {:noreply, socket}
+    %{
+      "id" => task_id,
+      "from" => %{"list_id" => from_column},
+      "to" => %{"list_id" => to_column},
+      "new" => new_position
+    } = params
+
+    task_id = String.to_integer(task_id)
+
+    # Get the current lists
+    from_list = get_list_by_column_id(socket, from_column)
+    to_list = get_list_by_column_id(socket, to_column)
+
+    # Find and update the task
+    task = Enum.find(from_list, &(&1.id == task_id))
+    updated_task = %{task | status: column_id_to_status(to_column)}
+
+    # Remove task from the source list
+    updated_from_list = Enum.reject(from_list, &(&1.id == task_id))
+
+    # Insert task into the destination list at the new position
+    updated_to_list =
+      if from_column == to_column do
+        List.insert_at(updated_from_list, new_position, updated_task)
+      else
+        List.insert_at(to_list, new_position, updated_task)
+      end
+
+    # Update the socket assigns
+    updated_socket =
+      socket
+      |> update_list_in_socket(from_column, updated_from_list)
+      |> update_list_in_socket(to_column, updated_to_list)
+
+    IO.inspect(updated_socket.assigns)
+
+    {:noreply, updated_socket}
+  end
+
+  defp get_list_by_column_id(socket, column_id) do
+    case column_id do
+      "todo-column" -> socket.assigns.todo_tasks
+      "in-progress-column" -> socket.assigns.in_progress_tasks
+      "done-column" -> socket.assigns.done_tasks
+    end
+  end
+
+  defp update_list_in_socket(socket, column_id, updated_list) do
+    case column_id do
+      "todo-column" -> assign(socket, :todo_tasks, updated_list)
+      "in-progress-column" -> assign(socket, :in_progress_tasks, updated_list)
+      "done-column" -> assign(socket, :done_tasks, updated_list)
+    end
+  end
+
+  defp column_id_to_status(column_id) do
+    case column_id do
+      "todo-column" -> "todo"
+      "in-progress-column" -> "in_progress"
+      "done-column" -> "done"
+    end
+  end
+
+  defp sort_tasks_by_status(tasks) do
+    todo_tasks = Enum.filter(tasks, &(&1.status == "todo"))
+    in_progress_tasks = Enum.filter(tasks, &(&1.status == "in_progress"))
+    done_tasks = Enum.filter(tasks, &(&1.status == "done"))
+
+    {todo_tasks, in_progress_tasks, done_tasks}
   end
 
   defp get_initial_tasks() do
@@ -47,54 +124,47 @@ defmodule KanbanWeb.BoardLive do
     ~H"""
     <div class="board">
       <.live_component module={TaskFormComponent} id="new-task-form" />
-      <div
-        id="todo-column"
-        class="column"
-        phx-hook="Sortable"
-        data-list_id="todo-column"
-        data-group="kanban"
-      >
+      <div class="column">
         <h2>Todo</h2>
-        <%= for task <- Enum.filter(@tasks, & &1.status == "todo") do %>
-          <div
-            class="task drag-item:focus-within:ring-0 drag-item:focus-within:ring-offset-0 drag-ghost:bg-zinc-300 drag-ghost:border-0 drag-ghost:ring-0"
-            id={"task-#{task.id}"}
-            data-id={task.id}
-          >
-            <h3><%= task.title %></h3>
-            <p><%= task.content %></p>
-          </div>
-        <% end %>
+        <div id="todo-column" phx-hook="Sortable" data-list_id="todo-column" data-group="kanban">
+          <%= for task <- @todo_tasks do %>
+            <div
+              class="task drag-item:focus-within:ring-0 drag-item:focus-within:ring-offset-0 drag-ghost:bg-zinc-300 drag-ghost:border-0 drag-ghost:ring-0"
+              id={"task-#{task.id}"}
+              data-id={task.id}
+            >
+              <h3><%= task.title %></h3>
+              <p><%= task.content %></p>
+            </div>
+          <% end %>
+        </div>
       </div>
-      <div
-        id="in-progress-column"
-        class="column"
-        phx-hook="Sortable"
-        data-list_id="in-progress-column"
-        data-group="kanban"
-      >
+      <div class="column">
         <h2>In Progress</h2>
-        <%= for task <- Enum.filter(@tasks, & &1.status == "in_progress") do %>
-          <div class="task" id={"task-#{task.id}"} data-id={task.id}>
-            <h3><%= task.title %></h3>
-            <p><%= task.content %></p>
-          </div>
-        <% end %>
+        <div
+          id="in-progress-column"
+          phx-hook="Sortable"
+          data-list_id="in-progress-column"
+          data-group="kanban"
+        >
+          <%= for task <- @in_progress_tasks do %>
+            <div class="task" id={"task-#{task.id}"} data-id={task.id}>
+              <h3><%= task.title %></h3>
+              <p><%= task.content %></p>
+            </div>
+          <% end %>
+        </div>
       </div>
-      <div
-        id="done-column"
-        class="column"
-        phx-hook="Sortable"
-        data-list_id="done-column"
-        data-group="kanban"
-      >
+      <div class="column">
         <h2>Done</h2>
-        <%= for task <- Enum.filter(@tasks, & &1.status == "done") do %>
-          <div class="task" id={"task-#{task.id}"} data-id={task.id}>
-            <h3><%= task.title %></h3>
-            <p><%= task.content %></p>
-          </div>
-        <% end %>
+        <div id="done-column" phx-hook="Sortable" data-list_id="done-column" data-group="kanban">
+          <%= for task <- @done_tasks do %>
+            <div class="task" id={"task-#{task.id}"} data-id={task.id}>
+              <h3><%= task.title %></h3>
+              <p><%= task.content %></p>
+            </div>
+          <% end %>
+        </div>
       </div>
     </div>
     """
