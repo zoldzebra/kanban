@@ -23,14 +23,14 @@ defmodule KanbanWeb.BoardLive do
 
   def handle_info({:new_task, task_params}, socket) do
     new_task = %{
-      id: length(socket.assigns.tasks) + 1,
+      id: length(socket.assigns.todo_tasks) + 1,
       title: task_params.title,
       content: task_params.content,
       status: "todo"
     }
 
-    updated_tasks = [new_task | socket.assigns.tasks]
-    {:noreply, assign(socket, tasks: updated_tasks)}
+    updated_todo_tasks = [new_task | socket.assigns.todo_tasks]
+    {:noreply, assign(socket, todo_tasks: updated_todo_tasks)}
   end
 
   def handle_event("reposition", params, socket) do
