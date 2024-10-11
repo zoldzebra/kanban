@@ -20,32 +20,77 @@ defmodule KanbanWeb.BoardLive do
     {:noreply, assign(socket, tasks: updated_tasks)}
   end
 
+  def handle_event("reposition", params, socket) do
+    # Put your logic here to deal with the changes to the list order
+    # and persist the data
+    IO.inspect(params)
+    IO.inspect(socket.assigns.tasks)
+    {:noreply, socket}
+  end
+
+  defp get_initial_tasks() do
+    [
+      %{id: 1, title: "Design UI1", content: "Create wireframes", status: "todo"},
+      %{id: 2, title: "Design UI2", content: "Create wireframes", status: "todo"},
+      %{id: 3, title: "Design UI3", content: "Create wireframes", status: "todo"},
+      %{
+        id: 223,
+        title: "Implement backend",
+        content: "Set up Phoenix project",
+        status: "in_progress"
+      },
+      %{id: 123, title: "Write tests", content: "Create unit tests", status: "done"}
+    ]
+  end
+
   def render(assigns) do
     ~H"""
     <div class="board">
       <.live_component module={TaskFormComponent} id="new-task-form" />
-      <div id="todo-column" class="column">
+      <div
+        id="todo-column"
+        class="column"
+        phx-hook="Sortable"
+        data-list_id="todo-column"
+        data-group="kanban"
+      >
         <h2>Todo</h2>
         <%= for task <- Enum.filter(@tasks, & &1.status == "todo") do %>
-          <div class="task" id={"task-#{task.id}"}>
+          <div
+            class="task drag-item:focus-within:ring-0 drag-item:focus-within:ring-offset-0 drag-ghost:bg-zinc-300 drag-ghost:border-0 drag-ghost:ring-0"
+            id={"task-#{task.id}"}
+            data-id={task.id}
+          >
             <h3><%= task.title %></h3>
             <p><%= task.content %></p>
           </div>
         <% end %>
       </div>
-      <div id="in-progress-column" class="column">
+      <div
+        id="in-progress-column"
+        class="column"
+        phx-hook="Sortable"
+        data-list_id="in-progress-column"
+        data-group="kanban"
+      >
         <h2>In Progress</h2>
         <%= for task <- Enum.filter(@tasks, & &1.status == "in_progress") do %>
-          <div class="task" id={"task-#{task.id}"}>
+          <div class="task" id={"task-#{task.id}"} data-id={task.id}>
             <h3><%= task.title %></h3>
             <p><%= task.content %></p>
           </div>
         <% end %>
       </div>
-      <div id="done-column" class="column">
+      <div
+        id="done-column"
+        class="column"
+        phx-hook="Sortable"
+        data-list_id="done-column"
+        data-group="kanban"
+      >
         <h2>Done</h2>
         <%= for task <- Enum.filter(@tasks, & &1.status == "done") do %>
-          <div class="task" id={"task-#{task.id}"}>
+          <div class="task" id={"task-#{task.id}"} data-id={task.id}>
             <h3><%= task.title %></h3>
             <p><%= task.content %></p>
           </div>
@@ -53,18 +98,5 @@ defmodule KanbanWeb.BoardLive do
       </div>
     </div>
     """
-  end
-
-  def get_initial_tasks() do
-    [
-      %{id: 1, title: "Design UI", content: "Create wireframes", status: "todo"},
-      %{
-        id: 2,
-        title: "Implement backend",
-        content: "Set up Phoenix project",
-        status: "in_progress"
-      },
-      %{id: 3, title: "Write tests", content: "Create unit tests", status: "done"}
-    ]
   end
 end
