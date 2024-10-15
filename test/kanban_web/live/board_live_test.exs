@@ -41,4 +41,83 @@ defmodule KanbanWeb.BoardLiveTest do
     assert has_element?(view, "#todo-column", "New Task")
     assert has_element?(view, "#todo-column", "This is a new task")
   end
+
+  test "can drag and drop a task within its own column", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/")
+
+    todo_column = view |> element("#todo-column") |> render()
+
+    [first_task | _] =
+      todo_column
+      |> Floki.parse_fragment!()
+      |> Floki.find(".task")
+      |> Enum.map(&Floki.text/1)
+
+    assert first_task =~ "Design UI1"
+
+    # Simulate drag and drop within the todo column
+    view
+    |> element("#todo-column")
+    |> render_hook("reposition", %{
+      "id" => "1",
+      "from" => %{"list_id" => "todo-column"},
+      "to" => %{"list_id" => "todo-column"},
+      "new" => 1
+    })
+
+    # Check if the task has moved to the new position
+    todo_column = view |> element("#todo-column") |> render()
+
+    [first_task, second_task | _] =
+      todo_column
+      |> Floki.parse_fragment!()
+      |> Floki.find(".task")
+      |> Enum.map(&Floki.text/1)
+
+    assert first_task =~ "Design UI2"
+    assert second_task =~ "Design UI1"
+  end
+
+  test "can drag and drop a task between columns", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/")
+
+    todo_column = view |> element("#todo-column") |> render()
+
+    [first_task | _] =
+      todo_column
+      |> Floki.parse_fragment!()
+      |> Floki.find(".task")
+      |> Enum.map(&Floki.text/1)
+
+    assert first_task =~ "Design UI1"
+
+    # Simulate drag and drop within the todo column
+    view
+    |> element("#todo-column")
+    |> render_hook("reposition", %{
+      "id" => "1",
+      "from" => %{"list_id" => "todo-column"},
+      "to" => %{"list_id" => "done-column"},
+      "new" => 1
+    })
+
+    # Check if the task has moved to the new position
+    todo_column = view |> element("#todo-column") |> render()
+    done_column = view |> element("#done-column") |> render()
+
+    todo_tasks =
+      todo_column
+      |> Floki.parse_fragment!()
+      |> Floki.find(".task")
+
+    assert length(todo_tasks) == 2
+
+    [_, second_task] =
+      done_column
+      |> Floki.parse_fragment!()
+      |> Floki.find(".task")
+      |> Enum.map(&Floki.text/1)
+
+    assert second_task =~ "Design UI1"
+  end
 end
