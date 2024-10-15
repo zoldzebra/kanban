@@ -3,12 +3,6 @@ defmodule KanbanWeb.BoardLive do
 
   alias KanbanWeb.TaskFormComponent
 
-  @column_id_status_map %{
-    "todo-column" => "todo",
-    "in-progress-column" => "in_progress",
-    "done-column" => "done"
-  }
-
   def mount(_params, _session, socket) do
     tasks = get_initial_tasks()
     {todo_tasks, in_progress_tasks, done_tasks} = sort_tasks_by_status(tasks)
@@ -68,8 +62,6 @@ defmodule KanbanWeb.BoardLive do
       |> update_list_in_socket(from_column, updated_from_list)
       |> update_list_in_socket(to_column, updated_to_list)
 
-    IO.inspect(updated_socket.assigns)
-
     {:noreply, updated_socket}
   end
 
@@ -124,46 +116,73 @@ defmodule KanbanWeb.BoardLive do
     ~H"""
     <div class="board">
       <.live_component module={TaskFormComponent} id="new-task-form" />
-      <div class="column">
-        <h2>Todo</h2>
-        <div id="todo-column" phx-hook="Sortable" data-list_id="todo-column" data-group="kanban">
-          <%= for task <- @todo_tasks do %>
-            <div
-              class="task drag-item:focus-within:ring-0 drag-item:focus-within:ring-offset-0 drag-ghost:bg-zinc-300 drag-ghost:border-0 drag-ghost:ring-0"
-              id={"task-#{task.id}"}
-              data-id={task.id}
-            >
-              <h3><%= task.title %></h3>
-              <p><%= task.content %></p>
-            </div>
-          <% end %>
+      <div class="column-container">
+        <div class="column">
+          <h2>Todo</h2>
+          <div
+            id="todo-column"
+            class="task-list"
+            phx-hook="Sortable"
+            data-list_id="todo-column"
+            data-group="kanban"
+          >
+            <%= for task <- @todo_tasks do %>
+              <div
+                class="task drag-item:focus-within:ring-0 drag-item:focus-within:ring-offset-0 drag-ghost:bg-zinc-300 drag-ghost:border-0 drag-ghost:ring-0"
+                id={"task-#{task.id}"}
+                data-id={task.id}
+              >
+                <h3><%= task.title %></h3>
+                <p><%= task.content %></p>
+              </div>
+            <% end %>
+          </div>
         </div>
       </div>
-      <div class="column">
-        <h2>In Progress</h2>
-        <div
-          id="in-progress-column"
-          phx-hook="Sortable"
-          data-list_id="in-progress-column"
-          data-group="kanban"
-        >
-          <%= for task <- @in_progress_tasks do %>
-            <div class="task" id={"task-#{task.id}"} data-id={task.id}>
-              <h3><%= task.title %></h3>
-              <p><%= task.content %></p>
-            </div>
-          <% end %>
+      <div class="column-container">
+        <div class="column">
+          <h2>In Progress</h2>
+          <div
+            id="in-progress-column"
+            class="task-list"
+            phx-hook="Sortable"
+            data-list_id="in-progress-column"
+            data-group="kanban"
+          >
+            <%= for task <- @in_progress_tasks do %>
+              <div
+                class="task drag-item:focus-within:ring-0 drag-item:focus-within:ring-offset-0 drag-ghost:bg-zinc-300 drag-ghost:border-0 drag-ghost:ring-0"
+                id={"task-#{task.id}"}
+                data-id={task.id}
+              >
+                <h3><%= task.title %></h3>
+                <p><%= task.content %></p>
+              </div>
+            <% end %>
+          </div>
         </div>
       </div>
-      <div class="column">
-        <h2>Done</h2>
-        <div id="done-column" phx-hook="Sortable" data-list_id="done-column" data-group="kanban">
-          <%= for task <- @done_tasks do %>
-            <div class="task" id={"task-#{task.id}"} data-id={task.id}>
-              <h3><%= task.title %></h3>
-              <p><%= task.content %></p>
-            </div>
-          <% end %>
+      <div class="column-container">
+        <div class="column">
+          <h2>Done</h2>
+          <div
+            id="done-column"
+            class="task-list"
+            phx-hook="Sortable"
+            data-list_id="done-column"
+            data-group="kanban"
+          >
+            <%= for task <- @done_tasks do %>
+              <div
+                class="task drag-item:focus-within:ring-0 drag-item:focus-within:ring-offset-0 drag-ghost:bg-zinc-300 drag-ghost:border-0 drag-ghost:ring-0"
+                id={"task-#{task.id}"}
+                data-id={task.id}
+              >
+                <h3><%= task.title %></h3>
+                <p><%= task.content %></p>
+              </div>
+            <% end %>
+          </div>
         </div>
       </div>
     </div>

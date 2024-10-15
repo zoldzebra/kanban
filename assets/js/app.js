@@ -37,7 +37,6 @@ Hooks.Sortable = {
       forceFallback: true,
       onEnd: e => {
         let params = {old: e.oldIndex, new: e.newIndex, to: e.to.dataset, from: e.from.dataset, ...e.item.dataset}
-        console.log(e)
         this.pushEventTo(this.el, "reposition", params)
       }
     })
