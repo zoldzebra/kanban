@@ -2,6 +2,7 @@ defmodule KanbanWeb.BoardLive do
   use KanbanWeb, :live_view
 
   alias KanbanWeb.TaskFormComponent
+  alias KanbanWeb.TaskColumnComponent
 
   def mount(_params, _session, socket) do
     tasks = get_initial_tasks()
@@ -27,7 +28,11 @@ defmodule KanbanWeb.BoardLive do
     {:noreply, assign(socket, todo_tasks: updated_todo_tasks)}
   end
 
-  def handle_event("reposition", params, socket) do
+  def handle_info({"reposition", params}, socket) do
+    handle_reposition(params, socket)
+  end
+
+  def handle_reposition(params, socket) do
     %{
       "id" => task_id,
       "from" => %{"list_id" => from_column},
@@ -117,73 +122,28 @@ defmodule KanbanWeb.BoardLive do
     <div class="board">
       <.live_component module={TaskFormComponent} id="new-task-form" />
       <div class="column-container">
-        <div class="column">
-          <h2>Todo</h2>
-          <div
-            id="todo-column"
-            class="task-list"
-            phx-hook="Sortable"
-            data-list_id="todo-column"
-            data-group="kanban"
-          >
-            <%= for task <- @todo_tasks do %>
-              <div
-                class="task drag-item:focus-within:ring-0 drag-item:focus-within:ring-offset-0 drag-ghost:bg-zinc-300 drag-ghost:border-0 drag-ghost:ring-0"
-                id={"task-#{task.id}"}
-                data-id={task.id}
-              >
-                <h3><%= task.title %></h3>
-                <p><%= task.content %></p>
-              </div>
-            <% end %>
-          </div>
-        </div>
+        <.live_component
+          module={TaskColumnComponent}
+          id="todo-column"
+          title="Todo"
+          tasks={@todo_tasks}
+        />
       </div>
       <div class="column-container">
-        <div class="column">
-          <h2>In Progress</h2>
-          <div
-            id="in-progress-column"
-            class="task-list"
-            phx-hook="Sortable"
-            data-list_id="in-progress-column"
-            data-group="kanban"
-          >
-            <%= for task <- @in_progress_tasks do %>
-              <div
-                class="task drag-item:focus-within:ring-0 drag-item:focus-within:ring-offset-0 drag-ghost:bg-zinc-300 drag-ghost:border-0 drag-ghost:ring-0"
-                id={"task-#{task.id}"}
-                data-id={task.id}
-              >
-                <h3><%= task.title %></h3>
-                <p><%= task.content %></p>
-              </div>
-            <% end %>
-          </div>
-        </div>
+        <.live_component
+          module={TaskColumnComponent}
+          id="in-progress-column"
+          title="In Progress"
+          tasks={@in_progress_tasks}
+        />
       </div>
       <div class="column-container">
-        <div class="column">
-          <h2>Done</h2>
-          <div
-            id="done-column"
-            class="task-list"
-            phx-hook="Sortable"
-            data-list_id="done-column"
-            data-group="kanban"
-          >
-            <%= for task <- @done_tasks do %>
-              <div
-                class="task drag-item:focus-within:ring-0 drag-item:focus-within:ring-offset-0 drag-ghost:bg-zinc-300 drag-ghost:border-0 drag-ghost:ring-0"
-                id={"task-#{task.id}"}
-                data-id={task.id}
-              >
-                <h3><%= task.title %></h3>
-                <p><%= task.content %></p>
-              </div>
-            <% end %>
-          </div>
-        </div>
+        <.live_component
+          module={TaskColumnComponent}
+          id="done-column"
+          title="Done"
+          tasks={@done_tasks}
+        />
       </div>
     </div>
     """
