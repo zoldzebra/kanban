@@ -55,17 +55,15 @@ defmodule KanbanWeb.BoardLiveTest do
 
     assert first_task =~ "Design UI1"
 
-    # Simulate drag and drop within the todo column
-    view
-    |> element("#todo-column")
-    |> render_hook("reposition", %{
+    reposition_params = %{
       "id" => "1",
       "from" => %{"list_id" => "todo-column"},
       "to" => %{"list_id" => "todo-column"},
       "new" => 1
-    })
+    }
 
-    # Check if the task has moved to the new position
+    send(view.pid, {"reposition", reposition_params})
+
     todo_column = view |> element("#todo-column") |> render()
 
     [first_task, second_task | _] =
@@ -91,15 +89,14 @@ defmodule KanbanWeb.BoardLiveTest do
 
     assert first_task =~ "Design UI1"
 
-    # Simulate drag and drop within the todo column
-    view
-    |> element("#todo-column")
-    |> render_hook("reposition", %{
+    reposition_params = %{
       "id" => "1",
       "from" => %{"list_id" => "todo-column"},
       "to" => %{"list_id" => "done-column"},
       "new" => 1
-    })
+    }
+
+    send(view.pid, {"reposition", reposition_params})
 
     # Check if the task has moved to the new position
     todo_column = view |> element("#todo-column") |> render()

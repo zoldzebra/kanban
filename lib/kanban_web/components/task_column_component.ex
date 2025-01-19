@@ -8,7 +8,7 @@ defmodule KanbanWeb.TaskColumnComponent do
 
   def render(assigns) do
     ~H"""
-    <div class="column" id={@id}>
+    <div class="column" id={"#{@id}-container"}>
       <h2><%= @title %></h2>
       <div id={@id} class="task-list" phx-hook="Sortable" data-list_id={@id} data-group="kanban">
         <%= for task <- @tasks do %>
