@@ -5,8 +5,10 @@ defmodule KanbanWeb.TaskFormComponent do
     ~H"""
     <div class="new-task-form">
       <.form for={@form} phx-submit="save" phx-target={@myself} phx-change="change">
-        <.input type="text" field={@form[:title]} placeholder="Task Title" required />
-        <.input type="text" field={@form[:content]} placeholder="Task Content" required />
+        <div class="input-group">
+          <.input type="text" field={@form[:title]} placeholder="Task Title" required />
+          <.input type="text" field={@form[:content]} placeholder="Task Content" required />
+        </div>
         <.button type="submit">Add Task</.button>
       </.form>
     </div>

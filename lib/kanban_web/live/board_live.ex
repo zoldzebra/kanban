@@ -120,30 +120,34 @@ defmodule KanbanWeb.BoardLive do
   def render(assigns) do
     ~H"""
     <div class="board">
-      <.live_component module={TaskFormComponent} id="new-task-form" />
-      <div class="column-container">
-        <.live_component
-          module={TaskColumnComponent}
-          id="todo-column"
-          title="Todo"
-          tasks={@todo_tasks}
-        />
+      <div class="task-form-container">
+        <.live_component module={TaskFormComponent} id="new-task-form" />
       </div>
-      <div class="column-container">
-        <.live_component
-          module={TaskColumnComponent}
-          id="in-progress-column"
-          title="In Progress"
-          tasks={@in_progress_tasks}
-        />
-      </div>
-      <div class="column-container">
-        <.live_component
-          module={TaskColumnComponent}
-          id="done-column"
-          title="Done"
-          tasks={@done_tasks}
-        />
+      <div class="tasks-container">
+        <div class="column-container">
+          <.live_component
+            module={TaskColumnComponent}
+            id="todo-column"
+            title="Todo"
+            tasks={@todo_tasks}
+          />
+        </div>
+        <div class="column-container">
+          <.live_component
+            module={TaskColumnComponent}
+            id="in-progress-column"
+            title="In Progress"
+            tasks={@in_progress_tasks}
+          />
+        </div>
+        <div class="column-container">
+          <.live_component
+            module={TaskColumnComponent}
+            id="done-column"
+            title="Done"
+            tasks={@done_tasks}
+          />
+        </div>
       </div>
     </div>
     """
